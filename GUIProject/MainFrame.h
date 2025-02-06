@@ -60,6 +60,9 @@ private:
 	std::string operationStr = "";
 	bool IsJustCalculated = true;
 	bool IsDivByZero = false;
+	bool IsRepeatingOperations = false;
+	bool EqualsPressed = false;
+	bool IsLastInputAnOperator = true;
 
 	// Declare enum for button IDs
 	enum IDs {
