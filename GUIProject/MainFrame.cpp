@@ -439,7 +439,6 @@ void MainFrame::OnButtonAddClicked(wxCommandEvent& evt) {
 
 void MainFrame::OnButtonEqualsClicked(wxCommandEvent& evt) {
 	Calculate();
-	//wxLogStatus("=");
 }
 
 void MainFrame::OnButtonNegateClicked(wxCommandEvent& evt) {
