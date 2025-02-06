@@ -290,7 +290,9 @@ void MainFrame::Calculate() {
 		}
 		else {
 			IsDivByZero = true;
+			wxLogStatus("div 0");
 			UpdateDisplay();
+			return;
 		}
 	}
 	else if (operationStr == "sqrt") {
