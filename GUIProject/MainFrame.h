@@ -17,6 +17,8 @@ private:
 	void ConcatenateNumber(std::string inputString);
 	void UpdateDisplay();
 	void Calculate();
+	void CalculateRepeatingOperations(std::string newOperation);
+	void Clear();
 
 	// Declare methods that are executed on events (like button presses)
 	void OnButton1Clicked(wxCommandEvent& evt);

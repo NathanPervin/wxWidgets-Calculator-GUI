@@ -241,7 +241,7 @@ void MainFrame::UpdateDisplay() {
 	// handle divide by zero
 	else if (IsDivByZero) {
 		calculatorDisplayedText = "DIVIDE BY 0 ERROR";
-		IsDivByZero = false;
+		Clear();
 	}
 	// handle overflow error
 	else if (std::isinf(currentNum)) {
@@ -331,6 +331,51 @@ void MainFrame::Calculate() {
 	}
 }
 
+void MainFrame::CalculateRepeatingOperations(std::string newOperation) {
+	
+	// If user divided by zero before doing next operation
+	if (currentNum == 0 && operationStr == "/") {
+		IsDivByZero = true;
+		UpdateDisplay();
+		return;
+	}
+	
+	if (newOperation == "sqrt") {
+		currentNum = sqrt(currentNum);
+	}
+	else if (newOperation == "sq") {
+		currentNum = pow(currentNum, 2);
+	}
+	else if (newOperation == "1/x") {
+		if (currentNum != 0) { // calculate normal reciprical
+			currentNum = 1 / currentNum;
+		}
+		else { // throw error if user tries to take the reciprical of 0
+			IsDivByZero = true;
+			UpdateDisplay();
+			return;
+		}
+	}
+	else if (newOperation == "percent") {
+		currentNum = currentNum * 100;
+	}
+	else if (newOperation == "+/-") {
+		currentNum = -currentNum;
+	}
+	currentNumStr = std::to_string(currentNum);
+	UpdateDisplay();
+}
+
+void MainFrame::Clear() {
+	currentNumStr = "";
+	currentNum = 0;
+	oldNum = 0;
+	IsDivByZero = false;
+	IsJustCalculated = true;
+	IsRepeatingOperations = false;
+	IsLastInputAnOperator = false;
+}
+
 /*
 The many following methods are executed on events (when a button is pressed)
 */
@@ -371,30 +416,36 @@ void MainFrame::OnButton9Clicked(wxCommandEvent& evt) {
 }
 
 void MainFrame::OnButton0Clicked(wxCommandEvent& evt) {
-	// Concatenates 0 to existing number so long as there has been something typed already
-	//if (!IsJustCalculated) {
-		ConcatenateNumber("0");
-	//}
+	ConcatenateNumber("0");
+
 }
 
 void MainFrame::OnButtonPercentClicked(wxCommandEvent& evt) {
-	oldNum = currentNum;
-	currentNumStr = "";
-	operationStr = "percent";
-	Calculate();
+
+	// Ensure that the user cannot enter multiple operators in succession
+	if (!IsLastInputAnOperator) {
+
+		// check if user is taking reciprical after a previous operation
+		if (!IsRepeatingOperations) {
+			oldNum = currentNum;
+			currentNumStr = "";
+			operationStr = "percent";
+			Calculate();
+		}
+		else { // repeating operations
+			CalculateRepeatingOperations("percent");
+		}
+	}
+
 }
 
 void MainFrame::OnButtonCEClicked(wxCommandEvent& evt) {
-	currentNumStr = "";
-	currentNum = 0;
-	oldNum = 0;
+	Clear();
 	UpdateDisplay();
 }
 
 void MainFrame::OnButtonCClicked(wxCommandEvent& evt) {
-	currentNumStr = "";
-	currentNum = 0;
-	oldNum = 0;
+	Clear();
 	UpdateDisplay();
 }
 
@@ -409,33 +460,66 @@ void MainFrame::OnButtonBackSpaceClicked(wxCommandEvent& evt) {
 
 void MainFrame::OnButtonRecipricalClicked(wxCommandEvent& evt) {
 
-	// Ensure that user cannot take reciprical of 0
-	if (currentNum != 0) {
-		oldNum = currentNum;
-		currentNumStr = "";
-		operationStr = "1/x";
-		Calculate();
-	}
-	else {
-		IsDivByZero = true;
-		UpdateDisplay();
-		return;
+	// Ensure that the user cannot enter multiple operators in succession
+	if (!IsLastInputAnOperator) {
+
+		// check if user is taking reciprical after a previous operation
+		if (!IsRepeatingOperations) {
+			
+			// Ensure that user cannot take reciprical of 0
+			if (currentNum != 0) {
+				oldNum = currentNum;
+				currentNumStr = "";
+				operationStr = "1/x";
+				Calculate();
+			}
+			else { // if user is taking reciprical of 0 throw a div by 0 error
+				IsDivByZero = true;
+				UpdateDisplay();
+				return;
+			}
+		}
+		else { // repeating operations
+			CalculateRepeatingOperations("1/x");		
+		}
 	}
 
 }
 
 void MainFrame::OnButtonSquareClicked(wxCommandEvent& evt) {
-	oldNum = currentNum;
-	currentNumStr = "";
-	operationStr = "sq";
-	Calculate();
+	// Ensure that the user cannot enter multiple operators in succession
+	if (!IsLastInputAnOperator) {
+
+		// check if user is squaring a number after a previous operation
+		if (!IsRepeatingOperations) {
+			oldNum = currentNum;
+			currentNumStr = "";
+			operationStr = "sq";
+			Calculate();
+		}
+		else { // repeating operations
+			CalculateRepeatingOperations("sq");
+		}
+
+	}
 }
 
 void MainFrame::OnButtonSQRTClicked(wxCommandEvent& evt) {
-	oldNum = currentNum;
-	currentNumStr = "";
-	operationStr = "sqrt";
-	Calculate();
+
+	// Ensure that the user cannot enter multiple operators in succession
+	if (!IsLastInputAnOperator) {
+
+		// check if user is squaring a number after a previous operation
+		if (!IsRepeatingOperations) {
+			oldNum = currentNum;
+			currentNumStr = "";
+			operationStr = "sqrt";
+			Calculate();
+		}
+		else { // repeating operations
+			CalculateRepeatingOperations("sqrt");
+		}
+	}
 }
 
 void MainFrame::OnButtonDivisionClicked(wxCommandEvent& evt) {
@@ -482,7 +566,6 @@ void MainFrame::OnButtonMulClicked(wxCommandEvent& evt) {
 			}
 			else if (operationStr == "/") { // if previous operaiton was division
 				IsDivByZero = true;
-				wxLogStatus("div 0");
 				UpdateDisplay();
 				return;
 			}
@@ -565,10 +648,20 @@ void MainFrame::OnButtonEqualsClicked(wxCommandEvent& evt) {
 }
 
 void MainFrame::OnButtonNegateClicked(wxCommandEvent& evt) {
-	oldNum = currentNum;
-	currentNumStr = "";
-	operationStr = "+/-";
-	Calculate();
+	// Ensure that the user cannot enter multiple operators in succession
+	if (!IsLastInputAnOperator) {
+
+		// check if user is squaring a number after a previous operation
+		if (!IsRepeatingOperations) {
+			oldNum = currentNum;
+			currentNumStr = "";
+			operationStr = "+/-";
+			Calculate();
+		}
+		else { // repeating operations
+			CalculateRepeatingOperations("+/-");
+		}
+	}
 }
 
 void MainFrame::OnButtonDecimalClicked(wxCommandEvent& evt) {
